@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Jonas Leert Schrijven!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Character Selection Screen -->
+    <div id="intro-screen" class="screen active">
+        <h1 class="bounce-in">Kies je held, Jonas!</h1>
+        <div class="heroes">
+            <button class="hero-btn" data-hero="brandweerman" style="--brand-color: #ff4757;">
+                <span class="emoji">🧑‍🚒</span>
+                <span>Brandweerman</span>
+            </button>
+            <button class="hero-btn" data-hero="ridder" style="--brand-color: #747d8c;">
+                <span class="emoji">🛡️</span>
+                <span>Ridder</span>
+            </button>
+            <button class="hero-btn" data-hero="draak" style="--brand-color: #2ed573;">
+                <span class="emoji">🐉</span>
+                <span>Draak</span>
+            </button>
+            <button class="hero-btn" data-hero="robot" style="--brand-color: #1e90ff;">
+                <span class="emoji">🤖</span>
+                <span>Robot</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress"></div>
+            <div id="hero-tracker" class="hero-tracker"></div>
+        </div>
+        
+        <div class="canvas-container">
+            <!-- Background canvas for the letter template -->
+            <canvas id="bg-canvas"></canvas>
+            <canvas id="draw-canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <!-- Super approachable clear button, just in case -->
+            <button id="clear-btn" class="bubbly-button">Oeps! Opnieuw</button>
+            <!-- Auto advance mostly, but this is a fail-safe -->
+            <button id="next-btn" class="bubbly-button primary-btn" style="display: none;">Volgende! ⭐</button>
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="screen">
+        <h1 class="bounce-in gold-text">JONAS, JIJ BENT EEN GOUDEN HELD! 🏆</h1>
+        <div id="winner-hero" class="winner-hero-emoji bounce-continuous"></div>
+        <button id="restart-btn" class="bubbly-button primary-btn">Nog Een Keer!</button>
+    </div>
+
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+:root {
+    --primary-color: #ff6b6b;
+    --secondary-color: #4ecdc4;
+    --bg-color: #f7f1e3;
+    --text-color: #2c3e50;
+    --gold: #ffd700;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: opacity 0.5s ease;
+}
+
+.screen.active {
+    display: flex;
+    opacity: 1;
+}
+
+h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: var(--primary-color);
+    text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+}
+
+/* Intro Screen */
+.heroes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.hero-btn {
+    border: none;
+    border-radius: 25px;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 10px 0 var(--brand-color);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.hero-btn:active {
+    transform: translateY(5px);
+    box-shadow: 0 5px 0 var(--brand-color);
+}
+
+.hero-btn .emoji {
+    font-size: 5rem;
+    margin-bottom: 10px;
+}
+
+.hero-btn span:last-child {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text-color);
+}
+
+/* Game Screen */
+.progress-bar-container {
+    width: 80%;
+    height: 30px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 15px;
+    position: absolute;
+    top: 40px;
+    overflow: visible;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--secondary-color);
+    border-radius: 15px;
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.hero-tracker {
+    position: absolute;
+    top: -15px;
+    left: 0%;
+    font-size: 2rem;
+    transform: translateX(-50%);
+    transition: left 0.5s ease;
+}
+
+.canvas-container {
+    position: relative;
+    width: 90vw;
+    height: 60vh;
+    background: white;
+    border-radius: 30px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#bg-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#draw-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    touch-action: none;
+}
+
+.controls {
+    display: flex;
+    gap: 20px;
+}
+
+.bubbly-button {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: #bdc3c7;
+    color: white;
+    box-shadow: 0 5px 0 #95a5a6;
+    transition: all 0.1s;
+}
+
+.bubbly-button:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #95a5a6;
+}
+
+.primary-btn {
+    background: var(--primary-color);
+    box-shadow: 0 5px 0 #cc444b;
+}
+
+.primary-btn:active {
+    box-shadow: 0 2px 0 #cc444b;
+}
+
+/* Hero Themes */
+.game-theme-brandweerman { background-color: #ffebeb; }
+.game-theme-ridder { background-color: #f1f2f6; }
+.game-theme-draak { background-color: #e3ffe3; }
+.game-theme-robot { background-color: #e3f2fd; }
+
+/* End Screen */
+.gold-text {
+    color: var(--gold);
+    -webkit-text-stroke: 2px #d4af37;
+}
+
+.winner-hero-emoji {
+    font-size: 10rem;
+    margin: 2rem 0;
+}
+
+/* Animations */
+@keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.bounce-in {
+    animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceContinuous {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.bounce-continuous {
+    animation: bounceContinuous 2s infinite ease-in-out;
+}
+
+/* Confetti fix */
+canvas#confetti {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
