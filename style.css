@@ -37,62 +37,87 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    transition: opacity 0.5s ease;
 }
 
-.screen.active {
-    display: flex;
-    opacity: 1;
-}
+.screen.active { display: flex; }
 
 h1 {
     font-family: 'Fredoka One', cursive;
-    font-size: 3rem;
-    margin-bottom: 2rem;
+    font-size: 2.4rem;
+    margin-bottom: 1.5rem;
     text-align: center;
     color: var(--primary-color);
     text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
 }
 
-/* Intro Screen */
-.heroes {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    width: 100%;
-    max-width: 600px;
+/* ===================== NAME SELECTION ===================== */
+.name-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    max-width: 560px;
 }
 
-.hero-btn {
+.name-btn {
     border: none;
-    border-radius: 25px;
-    padding: 20px;
+    border-radius: 20px;
+    padding: 16px 14px;
     background: white;
-    box-shadow: 0 10px 0 var(--brand-color);
+    box-shadow: 0 6px 0 var(--brand-color);
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 4px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    min-width: 100px;
+}
+
+.name-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 var(--brand-color);
+}
+
+.name-btn .emoji    { font-size: 3.2rem; }
+.name-label         { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--text-color); }
+.relation-label     { font-size: 0.8rem; color: #aaa; }
+
+/* ===================== GAME MODE SELECTION ===================== */
+.gamemode-grid {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 560px;
+}
+
+.mode-btn {
+    border: none;
+    border-radius: 20px;
+    padding: 22px 18px;
+    background: white;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.12);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    min-width: 120px;
     transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.hero-btn:active {
-    transform: translateY(5px);
-    box-shadow: 0 5px 0 var(--brand-color);
+.mode-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.12);
 }
 
-.hero-btn .emoji {
-    font-size: 5rem;
-    margin-bottom: 10px;
-}
+.mode-btn .emoji { font-size: 3.2rem; }
 
-.hero-btn span:last-child {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: var(--text-color);
-}
-
-/* Game Screen */
+/* ===================== WRITING GAME ===================== */
 .progress-bar-container {
     width: 80%;
     height: 30px;
@@ -123,21 +148,17 @@ h1 {
 .canvas-container {
     position: relative;
     width: 90vw;
-    height: 60vh;
+    height: 58vh;
     background: white;
     border-radius: 30px;
     box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin-bottom: 16px;
     overflow: hidden;
 }
 
 #bg-canvas {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     z-index: 1;
@@ -146,8 +167,7 @@ h1 {
 
 #draw-canvas {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     z-index: 2;
@@ -156,14 +176,15 @@ h1 {
 
 .controls {
     display: flex;
-    gap: 20px;
+    gap: 16px;
 }
 
+/* ===================== BUTTONS ===================== */
 .bubbly-button {
     font-family: 'Nunito', sans-serif;
     font-weight: 900;
-    font-size: 1.2rem;
-    padding: 15px 30px;
+    font-size: 1.1rem;
+    padding: 14px 26px;
     border: none;
     border-radius: 50px;
     cursor: pointer;
@@ -180,56 +201,239 @@ h1 {
 
 .primary-btn {
     background: var(--primary-color);
-    box-shadow: 0 5px 0 #cc444b;
+    box-shadow: 0 5px 0 color-mix(in srgb, var(--primary-color) 70%, black);
 }
 
-.primary-btn:active {
-    box-shadow: 0 2px 0 #cc444b;
+.back-btn {
+    background: #dfe6e9;
+    color: #636e72;
+    box-shadow: 0 4px 0 #b2bec3;
+    font-size: 0.95rem;
+    padding: 10px 20px;
 }
 
-/* Hero Themes */
-.game-theme-brandweerman { background-color: #ffebeb; }
-.game-theme-ridder { background-color: #f1f2f6; }
-.game-theme-draak { background-color: #e3ffe3; }
-.game-theme-robot { background-color: #e3f2fd; }
+/* ===================== MEMORY GAME ===================== */
+#memory-screen {
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding-top: 16px;
+    padding-bottom: 20px;
+}
 
-/* End Screen */
+.memory-grid {
+    display: grid;
+    gap: 10px;
+    padding: 8px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.memory-card {
+    aspect-ratio: 1;
+    cursor: pointer;
+    perspective: 600px;
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.42s ease;
+    border-radius: 14px;
+}
+
+.memory-card.flipped .card-inner,
+.memory-card.matched .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.card-front {
+    background: linear-gradient(135deg, var(--card-color, #667eea), color-mix(in srgb, var(--card-color, #764ba2) 60%, black));
+    font-size: 2rem;
+}
+
+.card-back {
+    background: white;
+    border: 3px solid var(--card-color, #667eea);
+    transform: rotateY(180deg);
+    font-size: 2.6rem;
+    color: var(--text-color);
+}
+
+.memory-card.matched .card-back {
+    background: #00b894;
+    border-color: #00b894;
+    color: white;
+}
+
+/* ===================== TRAIN GAME ===================== */
+#train-screen {
+    justify-content: flex-start;
+    padding-top: 14px;
+    padding-bottom: 16px;
+    overflow-y: auto;
+}
+
+.train-target {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.target-letter {
+    width: 42px;
+    height: 42px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    border: 2px solid rgba(0,0,0,0.08);
+    background: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.train-track {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 8px 16px;
+    margin-bottom: 4px;
+}
+
+.train-loco { font-size: 2.8rem; }
+
+.train-car {
+    width: 56px;
+    height: 56px;
+    background: white;
+    border-radius: 10px;
+    border: 3px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.7rem;
+    color: var(--text-color);
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.25s;
+}
+
+.train-car.next-car {
+    border-color: var(--gold);
+    box-shadow: 0 0 14px var(--gold);
+    animation: pulse 1.2s infinite;
+}
+
+.train-car.filled {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.letter-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    padding: 12px 16px;
+}
+
+.letter-tile {
+    width: 62px;
+    height: 62px;
+    background: white;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    cursor: pointer;
+    box-shadow: 0 5px 0 var(--brand-color, rgba(0,0,0,0.2));
+    transition: transform 0.1s, opacity 0.3s;
+    color: var(--text-color);
+}
+
+.letter-tile:active { transform: translateY(3px); }
+
+.letter-tile.used {
+    opacity: 0.25;
+    pointer-events: none;
+}
+
+.letter-tile.shake { animation: shake 0.5s; }
+
+/* ===================== END SCREEN ===================== */
 .gold-text {
     color: var(--gold);
     -webkit-text-stroke: 2px #d4af37;
 }
 
 .winner-hero-emoji {
-    font-size: 10rem;
-    margin: 2rem 0;
+    font-size: 9rem;
+    margin: 1.5rem 0;
 }
 
-/* Animations */
+.end-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ===================== ANIMATIONS ===================== */
 @keyframes bounceIn {
-    0% { transform: scale(0.3); opacity: 0; }
-    50% { transform: scale(1.05); }
-    70% { transform: scale(0.9); }
+    0%   { transform: scale(0.3); opacity: 0; }
+    50%  { transform: scale(1.05); }
+    70%  { transform: scale(0.9); }
     100% { transform: scale(1); opacity: 1; }
 }
 
-.bounce-in {
-    animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
+.bounce-in { animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
 
 @keyframes bounceContinuous {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+    50%       { transform: translateY(-20px); }
 }
 
-.bounce-continuous {
-    animation: bounceContinuous 2s infinite ease-in-out;
+.bounce-continuous { animation: bounceContinuous 2s infinite ease-in-out; }
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.08); }
 }
 
-/* Confetti fix */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-10px); }
+    40%       { transform: translateX(10px); }
+    60%       { transform: translateX(-10px); }
+    80%       { transform: translateX(10px); }
+}
+
 canvas#confetti {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;

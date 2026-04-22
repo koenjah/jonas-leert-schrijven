@@ -1,18 +1,129 @@
-const name = "jonas";
-let currentLetterIndex = 0;
-let selectedHero = "brandweerman";
-const heroEmojis = {
-    "brandweerman": "🧑‍🚒",
-    "ridder": "🛡️",
-    "draak": "🐉",
-    "robot": "🤖"
+// ===================== CONFIG =====================
+const NAMES = {
+  jonas:  { display: 'Jonas',  emoji: '⭐', relation: 'Jij!',     color: '#ff4757' },
+  esther: { display: 'Esther', emoji: '👩', relation: 'Mama',     color: '#fd79a8' },
+  koen:   { display: 'Koen',   emoji: '👨', relation: 'Papa',     color: '#0984e3' },
+  vera:   { display: 'Vera',   emoji: '👧', relation: 'Zusje',    color: '#a29bfe' },
+  floris: { display: 'Floris', emoji: '👶', relation: 'Broertje', color: '#00b894' },
 };
 
-const screens = {
-    intro: document.getElementById('intro-screen'),
-    game: document.getElementById('game-screen'),
-    end: document.getElementById('end-screen')
-};
+let currentName = 'jonas';
+let currentGame = 'schrijven';
+
+// ===================== SCREEN =====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===================== AUDIO =====================
+const synth = window.speechSynthesis;
+
+function playAudio(key, fallback = '') {
+  const audio = new Audio(`assets/${key}.mp3`);
+  audio.play().catch(() => {
+    if (!fallback) return;
+    if (synth.speaking) synth.cancel();
+    const u = new SpeechSynthesisUtterance(fallback);
+    u.lang = 'nl-NL';
+    u.rate = 0.9;
+    synth.speak(u);
+  });
+  return audio;
+}
+
+function playTone(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'cheer') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    }
+  } catch (e) {}
+}
+
+function fireConfetti(color) {
+  confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: [color, '#ffd700', '#ffffff'] });
+}
+
+function fireEndConfetti(color) {
+  const end = Date.now() + 3000;
+  (function frame() {
+    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: [color, '#ffd700'] });
+    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: [color, '#ffd700'] });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  }());
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ===================== NAME SELECTION =====================
+document.querySelectorAll('.name-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentName = btn.dataset.name;
+    const nd = NAMES[currentName];
+    document.documentElement.style.setProperty('--primary-color', nd.color);
+    document.getElementById('chosen-emoji').textContent = nd.emoji;
+    playAudio(`name_${currentName}`, `We schrijven de naam ${nd.display}!`);
+    try { document.documentElement.requestFullscreen?.(); } catch (e) {}
+    showScreen('gamemode-screen');
+  });
+});
+
+document.getElementById('back-to-names-btn').addEventListener('click', () => showScreen('name-screen'));
+
+// ===================== GAME MODE SELECTION =====================
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentGame = btn.dataset.mode;
+    if (currentGame === 'schrijven') startWriting();
+    else if (currentGame === 'memory')   startMemory();
+    else if (currentGame === 'trein')    startTrain();
+  });
+});
+
+document.getElementById('back-game-btn').addEventListener('click', () => showScreen('gamemode-screen'));
+document.getElementById('back-memory-btn').addEventListener('click', () => showScreen('gamemode-screen'));
+document.getElementById('back-train-btn').addEventListener('click', () => showScreen('gamemode-screen'));
+
+// ===================== END SCREEN =====================
+function showEndScreen() {
+  const nd = NAMES[currentName];
+  document.getElementById('end-title').textContent = `${nd.display}! ${nd.emoji}`;
+  document.getElementById('winner-emoji').textContent = nd.emoji;
+  showScreen('end-screen');
+  playAudio(`congrats_${currentName}`, `Gefeliciteerd! Je hebt ${nd.display} geschreven!`);
+  fireEndConfetti(nd.color);
+}
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  if (currentGame === 'schrijven') startWriting();
+  else if (currentGame === 'memory')   startMemory();
+  else if (currentGame === 'trein')    startTrain();
+});
+
+document.getElementById('other-name-btn').addEventListener('click', () => showScreen('name-screen'));
+
+// ===================== WRITING GAME =====================
+let currentLetterIndex = 0;
+let isDrawing = false;
+let totalLetterPixels = 0;
 
 const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
@@ -20,277 +131,295 @@ const bgCanvas = document.getElementById('bg-canvas');
 const bgCtx = bgCanvas.getContext('2d');
 const progressBar = document.getElementById('progress');
 const heroTracker = document.getElementById('hero-tracker');
-const clearBtn = document.getElementById('clear-btn');
 
-let isDrawing = false;
-let totalLetterPixels = 0;
-
-// Audio Fallback: Web Speech API
-const synth = window.speechSynthesis;
-function speak(text) {
-    if (synth.speaking) synth.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'nl-NL';
-    utter.rate = 0.9;
-    synth.speak(utter);
-}
-
-// Setup Canvas Size
 function resizeCanvas() {
-    const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    bgCanvas.width = container.clientWidth;
-    bgCanvas.height = container.clientHeight;
-    
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 35; // Balanced thickness for kids
-    
-    // We must redraw the letter when resized
-    if (name[currentLetterIndex]) {
-        drawTargetLetter(name[currentLetterIndex]);
-    }
-}
-
-function drawTargetLetter(letter) {
-    bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-    const fontSize = canvas.clientHeight * 0.5;
-    bgCtx.font = `${fontSize}px 'Fredoka One', cursive`;
-    bgCtx.textAlign = 'center';
-    bgCtx.textBaseline = 'middle';
-    bgCtx.fillStyle = '#f0f0f0';
-    bgCtx.fillText(letter, bgCanvas.width / 2, bgCanvas.height / 2);
-
-    // Calculate total opaque pixels
-    const bgData = bgCtx.getImageData(0, 0, bgCanvas.width, bgCanvas.height).data;
-    totalLetterPixels = 0;
-    for (let i = 3; i < bgData.length; i += 4) {
-        if (bgData[i] > 128) totalLetterPixels++;
-    }
+  const container = canvas.parentElement;
+  canvas.width  = container.clientWidth;
+  canvas.height = container.clientHeight;
+  bgCanvas.width  = container.clientWidth;
+  bgCanvas.height = container.clientHeight;
+  ctx.lineJoin = 'round';
+  ctx.lineCap  = 'round';
+  ctx.lineWidth = 35;
+  const nd = NAMES[currentName];
+  const letter = nd.display[currentLetterIndex];
+  if (letter) drawTargetLetter(letter);
 }
 
 window.addEventListener('resize', resizeCanvas);
 
-// Hero Selection
-document.querySelectorAll('.hero-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        selectedHero = btn.dataset.hero;
-        const color = btn.style.getPropertyValue('--brand-color');
-        ctx.strokeStyle = color;
-        
-        // Apply theme
-        document.body.className = `game-theme-${selectedHero}`;
-        
-        // Try to go fullscreen
-        try {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            }
-        } catch(e) {}
+function drawTargetLetter(letter) {
+  bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+  const fontSize = bgCanvas.clientHeight * 0.5;
+  bgCtx.font = `${fontSize}px 'Fredoka One', cursive`;
+  bgCtx.textAlign = 'center';
+  bgCtx.textBaseline = 'middle';
+  bgCtx.fillStyle = '#f0f0f0';
+  bgCtx.fillText(letter.toUpperCase(), bgCanvas.width / 2, bgCanvas.height / 2);
 
-        showScreen('game');
-        startLevel(0);
-        playInstruction('intro', "Hoi Jonas! Kies je favoriete held om te beginnen.");
-    });
-});
-
-function showScreen(screenId) {
-    Object.values(screens).forEach(s => s.classList.remove('active'));
-    screens[screenId].classList.add('active');
-}
-
-function startLevel(index) {
-    currentLetterIndex = index;
-    const letter = name[index];
-    drawTargetLetter(letter);
-    clearCanvas();
-    
-    // Update progress
-    const progressPerc = (index / name.length) * 100;
-    progressBar.style.width = `${progressPerc}%`;
-    heroTracker.style.left = `${progressPerc}%`;
-    heroTracker.textContent = heroEmojis[selectedHero];
-
-    // Play letter sound
-    const prompts = {
-        'j': "Schrijf nu de letter Jee.",
-        'o': "Goed zo! Nu de letter Oh.",
-        'n': "Super! Nu de letter En.",
-        'a': "Bijna klaar! Nu de letter Ah.",
-        's': "De laatste letter! De Es."
-    };
-    
-    setTimeout(() => playInstruction(letter.toUpperCase(), prompts[letter]), 1000);
+  const data = bgCtx.getImageData(0, 0, bgCanvas.width, bgCanvas.height).data;
+  totalLetterPixels = 0;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] > 128) totalLetterPixels++;
+  }
 }
 
 function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-clearBtn.addEventListener('click', () => {
-    clearCanvas();
-    playInstruction('oeps', "Oeps! Weer opnieuw.");
+function startWriting() {
+  const nd = NAMES[currentName];
+  ctx.strokeStyle = nd.color;
+  heroTracker.textContent = nd.emoji;
+  showScreen('game-screen');
+  startWritingLevel(0);
+}
+
+function startWritingLevel(index) {
+  currentLetterIndex = index;
+  const nameStr = NAMES[currentName].display;
+  resizeCanvas();
+  clearCanvas();
+
+  const perc = (index / nameStr.length) * 100;
+  progressBar.style.width = `${perc}%`;
+  heroTracker.style.left = `${perc}%`;
+
+  setTimeout(() => {
+    const letter = nameStr[index].toUpperCase();
+    playAudio(letter, `De letter ${letter}`);
+  }, 800);
+}
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  clearCanvas();
+  playAudio('oeps', 'Oeps! Weer opnieuw.');
 });
 
-// Drawing Logic
 function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-        x: clientX - rect.left,
-        y: clientY - rect.top
-    };
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: clientX - rect.left, y: clientY - rect.top };
 }
 
 function startDrawing(e) {
-    isDrawing = true;
-    const pos = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    e.preventDefault();
+  isDrawing = true;
+  const pos = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+  e.preventDefault();
 }
 
 function draw(e) {
-    if (!isDrawing) return;
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    e.preventDefault();
+  if (!isDrawing) return;
+  const pos = getPos(e);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+  e.preventDefault();
 }
 
 function stopDrawing() {
-    if (!isDrawing) return;
-    isDrawing = false;
-    ctx.closePath();
+  if (!isDrawing) return;
+  isDrawing = false;
+  ctx.closePath();
 
-    // Check pixel coverage!
-    const drawData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    const bgData = bgCtx.getImageData(0, 0, bgCanvas.width, bgCanvas.height).data;
-    
-    let coveredPixels = 0;
-    let outOfBoundsPixels = 0;
-    // Step by 16 (every 4th pixel) for performance
-    for (let i = 3; i < bgData.length; i += 16) {
-        const isLetter = bgData[i] > 128;
-        const isDrawn = drawData[i] > 128;
-        
-        if (isDrawn) {
-            if (isLetter) {
-                coveredPixels += 4; // approximated since we skipped pixels
-            } else {
-                outOfBoundsPixels += 4;
-            }
-        }
+  const drawData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const bgData   = bgCtx.getImageData(0, 0, bgCanvas.width, bgCanvas.height).data;
+  let covered = 0, outside = 0;
+
+  for (let i = 3; i < bgData.length; i += 16) {
+    const inLetter = bgData[i] > 128;
+    const isDrawn  = drawData[i] > 128;
+    if (isDrawn) {
+      if (inLetter) covered += 4;
+      else          outside += 4;
     }
+  }
 
-    if (totalLetterPixels > 0) {
-        const coverage = coveredPixels / totalLetterPixels;
-        
-        // Ratio based check: if there is way too much random drawing vs good tracing
-        const wildScribble = outOfBoundsPixels > (coveredPixels * 2.5) && outOfBoundsPixels > (totalLetterPixels * 0.8);
-
-        if (coverage > 0.65) {
-            triggerSuccess();
-        } else if (wildScribble) {
-            // Scrubbed too wildly outside the lines
-            playInstruction('oeps', "Oeps! Weer opnieuw.");
-            clearCanvas();
-        }
+  if (totalLetterPixels > 0) {
+    const coverage  = covered / totalLetterPixels;
+    const wildScrib = outside > (covered * 2.5) && outside > (totalLetterPixels * 0.8);
+    if (coverage > 0.65) {
+      triggerWritingSuccess();
+    } else if (wildScrib) {
+      clearCanvas();
+      playAudio('oeps', 'Oeps! Weer opnieuw.');
     }
+  }
 }
 
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 window.addEventListener('mouseup', stopDrawing);
-
 canvas.addEventListener('touchstart', startDrawing);
 canvas.addEventListener('touchmove', draw);
 window.addEventListener('touchend', stopDrawing);
 
-function triggerSuccess() {
-    // Dopamine hits
-    confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: [ctx.strokeStyle, '#ffd700', '#ffffff']
-    });
+function triggerWritingSuccess() {
+  const nd = NAMES[currentName];
+  fireConfetti(nd.color);
+  playTone('cheer');
+  playAudio('well_done', 'Goed zo!');
 
-    playAudioEffect('cheer');
-    playInstruction('well_done', "Geweldig gedaan!");
-
-    // Brief delay before next letter
-    setTimeout(() => {
-        if (currentLetterIndex < name.length - 1) {
-            startLevel(currentLetterIndex + 1);
-        } else {
-            showEndScreen();
-        }
-    }, 2000);
-}
-
-function showEndScreen() {
-    progressBar.style.width = '100%';
-    heroTracker.style.left = '100%';
-    document.getElementById('winner-hero').textContent = heroEmojis[selectedHero];
-    showScreen('end');
-    playInstruction('congrats', "Gefeliciteerd Jonas! Je heb je naam geschreven! Je bent een echte held!");
-    
-    // Continuous confetti for winning
-    const end = Date.now() + 3000;
-    (function frame() {
-        confetti({
-            particleCount: 5,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-            colors: ['#ff6b6b', '#ffd700']
-        });
-        confetti({
-            particleCount: 5,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-            colors: ['#4ecdc4', '#ffd700']
-        });
-        if (Date.now() < end) requestAnimationFrame(frame);
-    }());
-}
-
-document.getElementById('restart-btn').addEventListener('click', () => {
-    showScreen('intro');
-});
-
-// Instruction Management
-function playInstruction(key, text) {
-    const audioFilePath = `assets/${key}.mp3`;
-    const audio = new Audio(audioFilePath);
-    
-    audio.play().catch(() => {
-        // Fallback to speech synth if audio file doesn't exist
-        console.log(`Audio file ${audioFilePath} not found, using speech synthesis.`);
-        speak(text);
-    });
-}
-
-// Simple Audio Effects using Web Audio API (No files needed)
-function playAudioEffect(type) {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    if (type === 'cheer') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.5);
+  const nameStr = nd.display;
+  setTimeout(() => {
+    if (currentLetterIndex < nameStr.length - 1) {
+      startWritingLevel(currentLetterIndex + 1);
+    } else {
+      showEndScreen();
     }
+  }, 2000);
+}
+
+// ===================== MEMORY GAME =====================
+let memoryFlipped = [];
+let memoryMatched = 0;
+let memoryTotal   = 0;
+let memoryLocked  = false;
+
+function startMemory() {
+  const nd = NAMES[currentName];
+  const uniqueLetters = [...new Set(nd.display.toUpperCase().split(''))];
+  const pairs = shuffleArray([...uniqueLetters, ...uniqueLetters]);
+
+  memoryMatched = 0;
+  memoryTotal   = uniqueLetters.length;
+  memoryFlipped = [];
+  memoryLocked  = false;
+
+  document.getElementById('memory-title').textContent = `Memory ${nd.emoji}`;
+
+  const grid = document.getElementById('memory-grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(4, 1fr)`;
+
+  pairs.forEach(letter => {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.dataset.letter = letter;
+    card.style.setProperty('--card-color', nd.color);
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-front">🌟</div>
+        <div class="card-back">${letter}</div>
+      </div>`;
+    card.addEventListener('click', () => handleCardFlip(card));
+    grid.appendChild(card);
+  });
+
+  showScreen('memory-screen');
+  playAudio('memory_intro', 'Zoek de kaarten die bij elkaar horen!');
+}
+
+function handleCardFlip(card) {
+  if (memoryLocked) return;
+  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+  card.classList.add('flipped');
+  memoryFlipped.push(card);
+
+  if (memoryFlipped.length === 2) {
+    memoryLocked = true;
+    const [a, b] = memoryFlipped;
+
+    if (a.dataset.letter === b.dataset.letter) {
+      setTimeout(() => {
+        a.classList.add('matched');
+        b.classList.add('matched');
+        playTone('cheer');
+        playAudio('memory_match', 'Goed gevonden!');
+        memoryMatched++;
+        memoryFlipped = [];
+        memoryLocked  = false;
+        if (memoryMatched >= memoryTotal) {
+          setTimeout(showEndScreen, 1200);
+        }
+      }, 400);
+    } else {
+      setTimeout(() => {
+        a.classList.remove('flipped');
+        b.classList.remove('flipped');
+        playAudio('oeps', 'Oeps!');
+        memoryFlipped = [];
+        memoryLocked  = false;
+      }, 900);
+    }
+  }
+}
+
+// ===================== TRAIN GAME =====================
+let trainProgress = 0;
+let trainTarget   = [];
+
+function startTrain() {
+  const nd = NAMES[currentName];
+  trainTarget   = nd.display.toUpperCase().split('');
+  trainProgress = 0;
+
+  document.getElementById('train-title').textContent = `Letter Trein ${nd.emoji}`;
+
+  // Hint row
+  const targetEl = document.getElementById('train-target');
+  targetEl.innerHTML = trainTarget.map((l, i) =>
+    `<span class="target-letter" id="tletter-${i}">${l}</span>`
+  ).join('');
+
+  // Train track
+  const track = document.getElementById('train-track');
+  track.innerHTML = `<span class="train-loco">🚂</span>` +
+    trainTarget.map((_, i) =>
+      `<div class="train-car" id="car-${i}"></div>`
+    ).join('');
+
+  // Letter pool (shuffled)
+  const shuffled = shuffleArray([...trainTarget]);
+  const pool = document.getElementById('letter-pool');
+  pool.innerHTML = shuffled.map((l, i) =>
+    `<div class="letter-tile" data-letter="${l}" data-pool-idx="${i}" style="--brand-color: ${nd.color}">${l}</div>`
+  ).join('');
+
+  document.querySelectorAll('.letter-tile').forEach(tile => {
+    tile.addEventListener('click', () => handleTrainTile(tile));
+  });
+
+  highlightNextCar();
+  showScreen('train-screen');
+  playAudio('train_intro', 'Tik de letters in de goede volgorde!');
+}
+
+function highlightNextCar() {
+  document.querySelectorAll('.train-car').forEach((c, i) => {
+    c.classList.toggle('next-car', i === trainProgress);
+  });
+}
+
+function handleTrainTile(tile) {
+  if (tile.classList.contains('used')) return;
+  const letter   = tile.dataset.letter;
+  const expected = trainTarget[trainProgress];
+
+  if (letter === expected) {
+    tile.classList.add('used');
+    const car = document.getElementById(`car-${trainProgress}`);
+    car.textContent = letter;
+    car.classList.add('filled');
+    car.classList.remove('next-car');
+    playAudio(letter, letter);
+    trainProgress++;
+
+    if (trainProgress >= trainTarget.length) {
+      setTimeout(() => {
+        playAudio('train_win', 'Geweldig!');
+        setTimeout(showEndScreen, 1600);
+      }, 400);
+    } else {
+      highlightNextCar();
+    }
+  } else {
+    tile.classList.add('shake');
+    playAudio('oeps', 'Oeps!');
+    setTimeout(() => tile.classList.remove('shake'), 600);
+  }
 }

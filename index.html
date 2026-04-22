@@ -8,59 +8,102 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Character Selection Screen -->
-    <div id="intro-screen" class="screen active">
-        <h1 class="bounce-in">Kies je held, Jonas!</h1>
-        <div class="heroes">
-            <button class="hero-btn" data-hero="brandweerman" style="--brand-color: #ff4757;">
-                <span class="emoji">🧑‍🚒</span>
-                <span>Brandweerman</span>
-            </button>
-            <button class="hero-btn" data-hero="ridder" style="--brand-color: #747d8c;">
-                <span class="emoji">🛡️</span>
-                <span>Ridder</span>
-            </button>
-            <button class="hero-btn" data-hero="draak" style="--brand-color: #2ed573;">
-                <span class="emoji">🐉</span>
-                <span>Draak</span>
-            </button>
-            <button class="hero-btn" data-hero="robot" style="--brand-color: #1e90ff;">
-                <span class="emoji">🤖</span>
-                <span>Robot</span>
-            </button>
-        </div>
+
+<!-- Screen 1: Name Selection -->
+<div id="name-screen" class="screen active">
+    <h1 class="bounce-in">Wiens naam schrijven we?</h1>
+    <div class="name-grid">
+        <button class="name-btn" data-name="jonas" style="--brand-color: #ff4757;">
+            <span class="emoji">⭐</span>
+            <span class="name-label">Jonas</span>
+            <span class="relation-label">Jij!</span>
+        </button>
+        <button class="name-btn" data-name="esther" style="--brand-color: #fd79a8;">
+            <span class="emoji">👩</span>
+            <span class="name-label">Esther</span>
+            <span class="relation-label">Mama</span>
+        </button>
+        <button class="name-btn" data-name="koen" style="--brand-color: #0984e3;">
+            <span class="emoji">👨</span>
+            <span class="name-label">Koen</span>
+            <span class="relation-label">Papa</span>
+        </button>
+        <button class="name-btn" data-name="vera" style="--brand-color: #a29bfe;">
+            <span class="emoji">👧</span>
+            <span class="name-label">Vera</span>
+            <span class="relation-label">Zusje</span>
+        </button>
+        <button class="name-btn" data-name="floris" style="--brand-color: #00b894;">
+            <span class="emoji">👶</span>
+            <span class="name-label">Floris</span>
+            <span class="relation-label">Broertje</span>
+        </button>
     </div>
+</div>
 
-    <!-- Game Screen -->
-    <div id="game-screen" class="screen">
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progress"></div>
-            <div id="hero-tracker" class="hero-tracker"></div>
-        </div>
-        
-        <div class="canvas-container">
-            <!-- Background canvas for the letter template -->
-            <canvas id="bg-canvas"></canvas>
-            <canvas id="draw-canvas"></canvas>
-        </div>
-
-        <div class="controls">
-            <!-- Super approachable clear button, just in case -->
-            <button id="clear-btn" class="bubbly-button">Oeps! Opnieuw</button>
-            <!-- Auto advance mostly, but this is a fail-safe -->
-            <button id="next-btn" class="bubbly-button primary-btn" style="display: none;">Volgende! ⭐</button>
-        </div>
+<!-- Screen 2: Game Mode Selection -->
+<div id="gamemode-screen" class="screen">
+    <h1 class="bounce-in">Welk spel? <span id="chosen-emoji"></span></h1>
+    <div class="gamemode-grid">
+        <button class="mode-btn" data-mode="schrijven">
+            <span class="emoji">✏️</span>
+            <span>Schrijven</span>
+        </button>
+        <button class="mode-btn" data-mode="memory">
+            <span class="emoji">🃏</span>
+            <span>Memory</span>
+        </button>
+        <button class="mode-btn" data-mode="trein">
+            <span class="emoji">🚂</span>
+            <span>Letter Trein</span>
+        </button>
     </div>
+    <button id="back-to-names-btn" class="bubbly-button back-btn">← Andere naam</button>
+</div>
 
-    <!-- End Screen -->
-    <div id="end-screen" class="screen">
-        <h1 class="bounce-in gold-text">JONAS, JIJ BENT EEN GOUDEN HELD! 🏆</h1>
-        <div id="winner-hero" class="winner-hero-emoji bounce-continuous"></div>
-        <button id="restart-btn" class="bubbly-button primary-btn">Nog Een Keer!</button>
+<!-- Screen 3: Writing Game -->
+<div id="game-screen" class="screen">
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress"></div>
+        <div id="hero-tracker" class="hero-tracker"></div>
     </div>
+    <div class="canvas-container">
+        <canvas id="bg-canvas"></canvas>
+        <canvas id="draw-canvas"></canvas>
+    </div>
+    <div class="controls">
+        <button id="clear-btn" class="bubbly-button">Oeps! Opnieuw</button>
+        <button id="back-game-btn" class="bubbly-button back-btn">← Terug</button>
+    </div>
+</div>
 
-    <!-- Confetti Library -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="script.js"></script>
+<!-- Screen 4: Memory Game -->
+<div id="memory-screen" class="screen">
+    <h1 id="memory-title" class="bounce-in"></h1>
+    <div id="memory-grid" class="memory-grid"></div>
+    <button id="back-memory-btn" class="bubbly-button back-btn" style="margin-top: 14px;">← Terug</button>
+</div>
+
+<!-- Screen 5: Train Game -->
+<div id="train-screen" class="screen">
+    <h1 id="train-title" class="bounce-in"></h1>
+    <div id="train-target" class="train-target"></div>
+    <div id="train-track" class="train-track"></div>
+    <div id="letter-pool" class="letter-pool"></div>
+    <button id="back-train-btn" class="bubbly-button back-btn" style="margin-top: 8px;">← Terug</button>
+</div>
+
+<!-- Screen 6: End Screen -->
+<div id="end-screen" class="screen">
+    <h1 id="end-title" class="bounce-in gold-text"></h1>
+    <div id="winner-emoji" class="winner-hero-emoji bounce-continuous"></div>
+    <div class="end-buttons">
+        <button id="restart-btn" class="bubbly-button primary-btn">Nog een keer! ⭐</button>
+        <button id="other-name-btn" class="bubbly-button back-btn">Andere naam</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
