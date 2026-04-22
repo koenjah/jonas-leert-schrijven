@@ -11,7 +11,7 @@
 
 <!-- Screen 1: Name Selection -->
 <div id="name-screen" class="screen active">
-    <h1 class="bounce-in">Wiens naam schrijven we?</h1>
+    <h1 class="bounce-in">Kies een naam! 👇</h1>
     <div class="name-grid">
         <button class="name-btn" data-name="jonas" style="--brand-color: #ff4757;">
             <span class="emoji">⭐</span>
@@ -39,6 +39,7 @@
             <span class="relation-label">Broertje</span>
         </button>
     </div>
+    <button id="fullscreen-btn" class="fullscreen-btn" title="Volledig scherm">⛶</button>
 </div>
 
 <!-- Screen 2: Game Mode Selection -->
@@ -56,6 +57,14 @@
         <button class="mode-btn" data-mode="trein">
             <span class="emoji">🚂</span>
             <span>Letter Trein</span>
+        </button>
+        <button class="mode-btn" data-mode="raad">
+            <span class="emoji">🎯</span>
+            <span>Raad de Letter</span>
+        </button>
+        <button class="mode-btn" data-mode="ballon">
+            <span class="emoji">🎈</span>
+            <span>Ballonnen</span>
         </button>
     </div>
     <button id="back-to-names-btn" class="bubbly-button back-btn">← Andere naam</button>
@@ -93,7 +102,26 @@
     <button id="back-train-btn" class="bubbly-button back-btn" style="margin-top: 8px;">← Terug</button>
 </div>
 
-<!-- Screen 6: End Screen -->
+<!-- Screen 6: Raad de Letter -->
+<div id="raad-screen" class="screen">
+    <h1 id="raad-title" class="bounce-in"></h1>
+    <div class="raad-progress-wrap">
+        <div id="raad-progress" class="raad-progress-bar"></div>
+    </div>
+    <button id="replay-btn" class="replay-btn">🔊 Nog een keer</button>
+    <div id="raad-options" class="raad-options"></div>
+    <button id="back-raad-btn" class="bubbly-button back-btn">← Terug</button>
+</div>
+
+<!-- Screen 7: Ballonnen -->
+<div id="ballon-screen" class="screen">
+    <h1 id="ballon-title" class="bounce-in"></h1>
+    <div id="ballon-target" class="ballon-target bounce-in"></div>
+    <div id="ballon-container" class="balloon-container"></div>
+    <button id="back-ballon-btn" class="bubbly-button back-btn">← Terug</button>
+</div>
+
+<!-- Screen 8: End Screen -->
 <div id="end-screen" class="screen">
     <h1 id="end-title" class="bounce-in gold-text"></h1>
     <div id="winner-emoji" class="winner-hero-emoji bounce-continuous"></div>
